@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/alexeyco/simpletable"
 	"io"
 	"os"
 	"strconv"
@@ -83,9 +84,39 @@ func (e *Expenses) Add(purchase string) error {
 }
 
 func (e *Expenses) List() {
-	for idx, item := range *e {
-		fmt.Printf("%d - %s\n", idx+1, item.Name)
+	table := simpletable.New()
+
+	table.Header = &simpletable.Header{
+		Cells: []*simpletable.Cell{
+			{Align: simpletable.AlignCenter, Text: "#"},
+			{Align: simpletable.AlignCenter, Text: "Name"},
+			{Align: simpletable.AlignCenter, Text: "Count"},
+			{Align: simpletable.AlignCenter, Text: "Price"},
+			{Align: simpletable.AlignCenter, Text: "Category"},
+			{Align: simpletable.AlignCenter, Text: "Total"},
+		},
 	}
+	subtotal := 0
+	for idx, row := range *e {
+		r := []*simpletable.Cell{
+			{Text: fmt.Sprintf("%d", idx)},
+			{Text: row.Name},
+			{Text: strconv.Itoa(row.Count)},
+			{Text: strconv.Itoa(row.Price)},
+			{Text: row.Category},
+			{Text: strconv.Itoa(row.Total)},
+		}
+		table.Body.Cells = append(table.Body.Cells, r)
+		subtotal += row.Total
+	}
+	table.Footer = &simpletable.Footer{
+		Cells: []*simpletable.Cell{
+			{Align: simpletable.AlignCenter, Span: 5, Text: "Subtotal"},
+			{Text: strconv.Itoa(subtotal)},
+		},
+	}
+	table.SetStyle(simpletable.StyleUnicode)
+	fmt.Println(table.String())
 }
 
 func InputName(r io.Reader, args ...string) (string, error) {
