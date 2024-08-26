@@ -14,6 +14,7 @@ const (
 func main() {
 	add := flag.Bool("add", false, "add a new expense")
 	list := flag.Bool("list", false, "list all expenses")
+	rm := flag.Bool("rm", false, "delete a expense")
 	flag.Parse()
 
 	expenses := &CLI_Expenses.Expenses{}
@@ -42,5 +43,7 @@ func main() {
 		}
 	case *list:
 		expenses.List()
+	case *rm:
+		CLI_Expenses.FullClear()
 	}
 }

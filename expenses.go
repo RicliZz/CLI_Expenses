@@ -47,18 +47,18 @@ func (e *Expenses) Save(filename string) error {
 }
 
 func (e *Expenses) Add(purchase string) error {
-	purchase_slice := strings.Split(purchase, " ")
-	switch len(purchase_slice) {
+	PurchaseSlice := strings.Split(purchase, " ")
+	switch len(PurchaseSlice) {
 	case 0:
 		return errors.New("New entry is empty")
 	case 2:
 		fmt.Println("YES")
-		price, err := strconv.Atoi(purchase_slice[1])
+		price, err := strconv.Atoi(PurchaseSlice[1])
 		if err != nil {
 			return err
 		}
 		newItem := item{
-			Name:     purchase_slice[0],
+			Name:     PurchaseSlice[0],
 			Count:    1,
 			Price:    price,
 			Total:    price,
@@ -66,13 +66,13 @@ func (e *Expenses) Add(purchase string) error {
 		}
 		*e = append(*e, newItem)
 	case 3:
-		price, err := strconv.Atoi(purchase_slice[1])
-		count, err := strconv.Atoi(purchase_slice[2])
+		price, err := strconv.Atoi(PurchaseSlice[1])
+		count, err := strconv.Atoi(PurchaseSlice[2])
 		if err != nil {
 			return err
 		}
 		newItem := item{
-			Name:     purchase_slice[0],
+			Name:     PurchaseSlice[0],
 			Count:    count,
 			Price:    price,
 			Total:    count * price,
@@ -106,4 +106,22 @@ func InputName(r io.Reader, args ...string) (string, error) {
 	}
 
 	return scanner.Text(), nil
+}
+
+func FullClear() {
+	r := bufio.NewReader(os.Stdin)
+	fmt.Print("All data will be DELETED. You really want this?[Y/n] ")
+	input, _ := r.ReadString('\n')
+	input = strings.TrimSpace(strings.ToLower(input))
+
+	if input == "y" {
+		err := os.Remove("expenses.json")
+		if err != nil {
+			fmt.Println("Error deleting file:", err)
+		} else {
+			fmt.Println("File deleted successfully.")
+		}
+	} else {
+		fmt.Println("Operation cancelled.")
+	}
 }
