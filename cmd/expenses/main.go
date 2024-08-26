@@ -76,5 +76,10 @@ func main() {
 			fmt.Println(err.Error())
 			os.Exit(1)
 		}
+		err = expenses.Save(jsonfile)
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
 	}
 }
