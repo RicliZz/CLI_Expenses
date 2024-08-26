@@ -52,7 +52,6 @@ func (e *Expenses) Add(purchase string) error {
 	case 0:
 		return errors.New("New entry is empty")
 	case 2:
-		fmt.Println("YES")
 		price, err := strconv.Atoi(PurchaseSlice[1])
 		if err != nil {
 			return err
@@ -124,4 +123,12 @@ func FullClear() {
 	} else {
 		fmt.Println("Operation cancelled.")
 	}
+}
+
+func (e *Expenses) AddCategory(id int, category *string) error {
+	if id < 0 || id > len(*e) {
+		return errors.New("No such item")
+	}
+	(*e)[id-1].Category = *category
+	return nil
 }
