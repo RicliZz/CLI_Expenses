@@ -3,7 +3,6 @@ package CLI_Expenses
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"os"
 	"strconv"
 )
@@ -44,8 +43,6 @@ func (e *Expenses) Save(filename string) error {
 }
 
 func (e *Expenses) Add(purchase ...string) error {
-	fmt.Printf("Please enter only:\n NAME AND PRICE or \n NAME, PRICE and COUNT(if COUNT is not 1")
-
 	switch len(purchase) {
 	case 0:
 		return errors.New("New entry is empty")
