@@ -19,6 +19,7 @@ func main() {
 	list := flag.Bool("list", false, "list all expenses")
 	rm := flag.Bool("rm", false, "delete a expense")
 	category := flag.String("category", "", "category")
+	del := flag.Int("del", 0, "delete a expense")
 	flag.Parse()
 
 	expenses := &CLI_Expenses.Expenses{}
@@ -65,6 +66,12 @@ func main() {
 			os.Exit(1)
 		}
 		err = expenses.Save(jsonfile)
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
+	case *del > 0:
+		err := expenses.Del(*del)
 		if err != nil {
 			fmt.Println(err.Error())
 			os.Exit(1)

@@ -132,3 +132,11 @@ func (e *Expenses) AddCategory(id int, category *string) error {
 	(*e)[id-1].Category = *category
 	return nil
 }
+
+func (e *Expenses) Del(id int) error {
+	if id < 0 || id > len(*e) {
+		return errors.New("No such item")
+	}
+	*e = append((*e)[:id-1], (*e)[id:]...)
+	return nil
+}
