@@ -12,6 +12,8 @@ import (
 	"strings"
 )
 
+const Balancefile = "balance.txt"
+
 type item struct {
 	Name     string
 	Count    int
@@ -26,6 +28,10 @@ func (e *Expenses) Open(filename string) error {
 	file, err := os.ReadFile(filename)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
+			err = CreateBalance(Balancefile)
+			if err != nil {
+				return err
+			}
 			return nil
 		}
 		return err
@@ -48,15 +54,45 @@ func (e *Expenses) Save(filename string) error {
 }
 
 func (e *Expenses) Add(purchase string) error {
+	var newBalance int
 	PurchaseSlice := strings.Split(purchase, " ")
+	file, err := os.OpenFile(Balancefile, os.O_RDWR, 0666)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	scanner.Scan()
+	balance := scanner.Text()
+	file.Truncate(0)
+	file.Seek(0, 0)
+	balanceInt, err := strconv.Atoi(balance)
+	if err != nil {
+		return err
+	}
+	price, err := strconv.Atoi(PurchaseSlice[1])
+	if err != nil {
+		return err
+	}
+	if len(PurchaseSlice) > 2 {
+		count, _ := strconv.Atoi(PurchaseSlice[2])
+		newBalance = balanceInt - price*count
+	} else {
+		newBalance = balanceInt - price
+	}
+	newBalanceString := strconv.Itoa(newBalance)
+	_, err = file.WriteString(newBalanceString)
+	if err != nil {
+		return err
+	}
 	switch len(PurchaseSlice) {
 	case 0:
 		return errors.New("New entry is empty")
+
+	case 1:
+		return errors.New("Insufficient data")
+
 	case 2:
-		price, err := strconv.Atoi(PurchaseSlice[1])
-		if err != nil {
-			return err
-		}
 		newItem := item{
 			Name:     PurchaseSlice[0],
 			Count:    1,
@@ -65,12 +101,9 @@ func (e *Expenses) Add(purchase string) error {
 			Category: "",
 		}
 		*e = append(*e, newItem)
+
 	case 3:
-		price, err := strconv.Atoi(PurchaseSlice[1])
-		count, err := strconv.Atoi(PurchaseSlice[2])
-		if err != nil {
-			return err
-		}
+		count, _ := strconv.Atoi(PurchaseSlice[2])
 		newItem := item{
 			Name:     PurchaseSlice[0],
 			Count:    count,
@@ -90,8 +123,8 @@ func (e *Expenses) List() {
 		Cells: []*simpletable.Cell{
 			{Align: simpletable.AlignCenter, Text: "#"},
 			{Align: simpletable.AlignCenter, Text: "Name"},
-			{Align: simpletable.AlignCenter, Text: "Count"},
 			{Align: simpletable.AlignCenter, Text: "Price"},
+			{Align: simpletable.AlignCenter, Text: "Count"},
 			{Align: simpletable.AlignCenter, Text: "Category"},
 			{Align: simpletable.AlignCenter, Text: "Total"},
 		},
@@ -99,10 +132,10 @@ func (e *Expenses) List() {
 	subtotal := 0
 	for idx, row := range *e {
 		r := []*simpletable.Cell{
-			{Text: fmt.Sprintf("%d", idx)},
+			{Text: fmt.Sprintf("%d", idx+1)},
 			{Text: row.Name},
-			{Text: strconv.Itoa(row.Count)},
 			{Text: strconv.Itoa(row.Price)},
+			{Text: strconv.Itoa(row.Count)},
 			{Text: row.Category},
 			{Text: strconv.Itoa(row.Total)},
 		}
@@ -169,5 +202,65 @@ func (e *Expenses) Del(id int) error {
 		return errors.New("No such item")
 	}
 	*e = append((*e)[:id-1], (*e)[id:]...)
+	return nil
+}
+
+func CreateBalance(filepath string) error {
+	var number string
+	fmt.Println("Please enter your current balance\n")
+	_, err := fmt.Scan(&number)
+	if err != nil {
+		return err
+	}
+	file, err := os.Create(filepath)
+	if err != nil {
+		return errors.New("Failed to create file with balance")
+	}
+	defer file.Close()
+
+	_, err = file.WriteString(number)
+	if err != nil {
+		return err
+	}
+	fmt.Println("Successfully created file with balance!")
+	return nil
+}
+
+func WriteBalance() (string, error) {
+	var line string
+	file, err := os.Open(Balancefile)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	if scanner.Scan() {
+		line = scanner.Text()
+	}
+	return line, nil
+}
+
+func AddBalance(newBalance int) error {
+	var line string
+	file, err := os.OpenFile(Balancefile, os.O_RDWR, 0666)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line = scanner.Text()
+	}
+	IntLine, err := strconv.Atoi(line)
+	if err != nil {
+		return err
+	}
+	IntLine += newBalance
+	file.Seek(0, 0)
+	StringLine := strconv.Itoa(IntLine)
+	_, err = file.WriteString(StringLine)
+	if err != nil {
+		return err
+	}
 	return nil
 }

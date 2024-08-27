@@ -20,6 +20,8 @@ func main() {
 	rm := flag.Bool("rm", false, "delete a expense")
 	category := flag.String("category", "", "category")
 	del := flag.Int("del", 0, "delete a expense")
+	balance := flag.Bool("balance", false, "balance a expense")
+	balance_add := flag.Int("balance_add", 0, "add a new expense")
 	flag.Parse()
 
 	expenses := &CLI_Expenses.Expenses{}
@@ -31,6 +33,7 @@ func main() {
 
 	switch {
 	case *add:
+		fmt.Println("Please provide a new expense in format:\n1)NAME AND PRICE\n2)NAME, PRICE AND COUNT")
 		line, err := CLI_Expenses.InputName(os.Stdin, flag.Args()...)
 		if err != nil {
 			fmt.Println(err.Error())
@@ -77,6 +80,19 @@ func main() {
 			os.Exit(1)
 		}
 		err = expenses.Save(jsonfile)
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
+	case *balance:
+		line, err := CLI_Expenses.WriteBalance()
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
+		fmt.Println(line)
+	case *balance_add > 0:
+		err := CLI_Expenses.AddBalance(*balance_add)
 		if err != nil {
 			fmt.Println(err.Error())
 			os.Exit(1)
